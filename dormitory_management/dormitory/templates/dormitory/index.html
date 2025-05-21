@@ -1,0 +1,437 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Dormitory Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'dormitory/css/styles.css' %}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="#" class="logo">
+                    <i class="fas fa-building"></i>
+                    <span>UniDorm Management</span>
+                </a>
+                <div class="nav-links">
+                    <a href="#" class="active">Dashboard</a>
+                    <a href="#">Buildings</a>
+                    <a href="#">Rooms</a>
+                    <a href="#">Students</a>
+                    <a href="#">Maintenance</a>
+                    <a href="#">Payments</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="dashboard fade-in">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Dormitory Management Dashboard</h1>
+                <div class="dashboard-actions">
+                    <button class="btn btn-primary" onclick="openModal('addStudentModal')">
+                        <i class="fas fa-user-plus"></i> Add Student
+                    </button>
+                    <button class="btn btn-primary" onclick="openModal('assignRoomModal')">
+                        <i class="fas fa-home"></i> Assign Room
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card buildings">
+                    <div class="icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3>{{ buildings_count|default:"3" }}</h3>
+                    <p>Total Buildings</p>
+                </div>
+                <div class="stat-card rooms">
+                    <div class="icon">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <h3>{{ rooms_count|default:"120" }}</h3>
+                    <p>Total Rooms</p>
+                </div>
+                <div class="stat-card students">
+                    <div class="icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h3>{{ students_count|default:"98" }}</h3>
+                    <p>Registered Students</p>
+                </div>
+                <div class="stat-card maintenance">
+                    <div class="icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3>{{ maintenance_count|default:"12" }}</h3>
+                    <p>Pending Maintenance</p>
+                </div>
+            </div>
+
+            <div class="content-tabs">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="openTab('rooms-tab')">Room Status</button>
+                    <button class="tab-btn" onclick="openTab('students-tab')">Recent Students</button>
+                    <button class="tab-btn" onclick="openTab('maintenance-tab')">Maintenance Requests</button>
+                    <button class="tab-btn" onclick="openTab('payments-tab')">Recent Payments</button>
+                </div>
+
+                <div class="tab-content">
+                    <div id="rooms-tab" class="tab-pane active">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Room ID</th>
+                                    <th>Building</th>
+                                    <th>Room Number</th>
+                                    <th>Floor</th>
+                                    <th>Type</th>
+                                    <th>Capacity</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if rooms %}
+                                    {% for room in rooms %}
+                                    <tr>
+                                        <td>R{{ room.room_id }}</td>
+                                        <td>{{ room.building.building_name }}</td>
+                                        <td>{{ room.room_number }}</td>
+                                        <td>{{ room.floor }}</td>
+                                        <td>{{ room.room_type }}</td>
+                                        <td>{{ room.room_capacity }}</td>
+                                        <td><span class="status status-{{ room.room_status|lower }}">{{ room.room_status }}</span></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="action-btn action-btn-view" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="action-btn action-btn-edit" title="Edit Room">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="students-tab" class="tab-pane">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Gender</th>
+                                    <th>Room</th>
+                                    <th>Building</th>
+                                    <th>Contact</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if students %}
+                                    {% for student in students %}
+                                    <tr>
+                                        <td>S{{ student.student_id }}</td>
+                                        <td>{{ student.f_name }}</td>
+                                        <td>{{ student.l_name }}</td>
+                                        <td>{{ student.gender }}</td>
+                                        <td>
+                                            {% for assignment in student.roomassignment_set.all %}
+                                                {{ assignment.room.room_number }}
+                                            {% empty %}
+                                                Not Assigned
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            {% for assignment in student.roomassignment_set.all %}
+                                                {{ assignment.d_building.building_name }}
+                                            {% empty %}
+                                                Not Assigned
+                                            {% endfor %}
+                                        </td>
+                                        <td>{{ student.contact_number }}</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="action-btn action-btn-view" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="action-btn action-btn-edit" title="Edit Student">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="action-btn action-btn-delete" title="Delete Student">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center">No students found. Add a student to get started.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="maintenance-tab" class="tab-pane">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Room</th>
+                                    <th>Building</th>
+                                    <th>Reported By</th>
+                                    <th>Issue</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if maintenance_requests %}
+                                    {% for request in maintenance_requests %}
+                                    <tr>
+                                        <td>M{{ request.maint_req_id }}</td>
+                                        <td>{{ request.room.room_number }}</td>
+                                        <td>{{ request.room.building.building_name }}</td>
+                                        <td>{{ request.student.f_name }} {{ request.student.l_name }}</td>
+                                        <td>{{ request.request_desc }}</td>
+                                        <td>{{ request.request_date }}</td>
+                                        <td><span class="status status-{% if request.request_status == 'Pending' %}occupied{% elif request.request_status == 'In Progress' %}maintenance{% else %}available{% endif %}">{{ request.request_status }}</span></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="action-btn action-btn-view" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="action-btn action-btn-edit" title="Update Status">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td>M001</td>
+                                        <td>101</td>
+                                        <td>Building A</td>
+                                        <td>John Doe</td>
+                                        <td>Leaking faucet</td>
+                                        <td>2025-03-15</td>
+                                        <td><span class="status status-occupied">Pending</span></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="action-btn action-btn-view" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="action-btn action-btn-edit" title="Update Status">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="payments-tab" class="tab-pane">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Student</th>
+                                    <th>Room</th>
+                                    <th>Amount</th>
+                                    <th>Type</th>
+                                    <th>Method</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if payments %}
+                                    {% for payment in payments %}
+                                    <tr>
+                                        <td>P{{ payment.payment_id }}</td>
+                                        <td>{{ payment.student.f_name }} {{ payment.student.l_name }}</td>
+                                        <td>
+                                            {% for assignment in payment.student.roomassignment_set.all %}
+                                                {{ assignment.room.room_number }}
+                                            {% empty %}
+                                                Not Assigned
+                                            {% endfor %}
+                                        </td>
+                                        <td>${{ payment.total_amount }}</td>
+                                        <td>{{ payment.pay_type }}</td>
+                                        <td>{{ payment.pay_method }}</td>
+                                        <td>{{ payment.pay_date }}</td>
+                                        <td><span class="status status-{% if payment.payment_status == 'Complete' %}available{% elif payment.payment_status == 'Partial' %}occupied{% else %}maintenance{% endif %}">{{ payment.payment_status }}</span></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="action-btn action-btn-view" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td>P001</td>
+                                        <td>John Doe</td>
+                                        <td>101</td>
+                                        <td>$450.00</td>
+                                        <td>Room Rent</td>
+                                        <td>Credit Card</td>
+                                        <td>2025-03-01</td>
+                                        <td><span class="status status-available">Completed</span></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="action-btn action-btn-view" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add Student Modal -->
+    <div id="addStudentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Student</h3>
+                <button class="modal-close" onclick="closeModal('addStudentModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addStudentForm">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="middleName">Middle Name</label>
+                            <input type="text" id="middleName" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" class="form-control" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactNumber">Contact Number</label>
+                            <input type="tel" id="contactNumber" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="birthdate">Birthdate</label>
+                            <input type="date" id="birthdate" class="form-control" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="closeModal('addStudentModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveStudent()">Save Student</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Room Modal -->
+    <div id="assignRoomModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Assign Room to Student</h3>
+                <button class="modal-close" onclick="closeModal('assignRoomModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="assignRoomForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="studentSelect">Select Student</label>
+                        <select id="studentSelect" class="form-control" required>
+                            <option value="">Choose a student</option>
+                            {% for student in students %}
+                                <option value="S{{ student.student_id }}">S{{ student.student_id }} - {{ student.f_name }} {{ student.l_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="buildingSelect">Select Building</label>
+                        <select id="buildingSelect" class="form-control" required>
+                            <option value="">Choose a building</option>
+                            {% for building in buildings %}
+                                <option value="B{{ building.d_building_id }}">{{ building.building_name }}</option>
+                            {% endfor %}
+                            {% if not buildings %}
+                                <option value="B001">Building A</option>
+                                <option value="B002">Building B</option>
+                                <option value="B003">Building C</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="roomSelect">Select Room</label>
+                        <select id="roomSelect" class="form-control" required>
+                            <option value="">Choose a room</option>
+                            <!-- Will be populated via JavaScript -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="assignmentDate">Assignment Date</label>
+                        <input type="date" id="assignmentDate" class="form-control" required value="{% now 'Y-m-d' %}">
+                    </div>
+                    <div class="form-group">
+                        <label for="paymentStatus">Payment Status</label>
+                        <select id="paymentStatus" class="form-control" required>
+                            <option value="Pending">Pending</option>
+                            <option value="Partial">Partial</option>
+                            <option value="Complete">Complete</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="closeModal('assignRoomModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="assignRoom()">Assign Room</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'dormitory/js/index.js' %}"></script>
+</body>
+</html>
