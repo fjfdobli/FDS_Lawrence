@@ -79,7 +79,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'dormitory_db',
         'USER': 'dormitory_user',
-        'PASSWORD': 'your_password',
+        'PASSWORD': 'your_password',  # Set the password to an empty string
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
@@ -88,6 +88,7 @@ DATABASES = {
         }
     }
 }
+
 
 
 # Password validation
